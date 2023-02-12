@@ -1,0 +1,11 @@
+timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+1676069127643,796,comments feed,200,OK,Thread Group 1-3,text,true,,4548,135,5,5,https://130.215.26.44/index.php/comments/feed/,796,0,92
+1676069127643,930,comments feed,200,OK,Thread Group 1-4,text,true,,4548,135,5,5,https://130.215.26.44/index.php/comments/feed/,930,0,88
+1676069127643,961,comments feed,200,OK,Thread Group 1-5,text,true,,4548,135,5,5,https://130.215.26.44/index.php/comments/feed/,960,0,95
+1676069127643,965,comments feed,200,OK,Thread Group 1-1,text,true,,4548,135,5,5,https://130.215.26.44/index.php/comments/feed/,965,0,98
+1676069127643,983,comments feed,200,OK,Thread Group 1-2,text,true,,4548,135,5,5,https://130.215.26.44/index.php/comments/feed/,983,0,91
+1676069128627,9555,index,Non HTTP response code: java.net.SocketException,Non HTTP response message: Socket closed,Thread Group 1-2,text,false,,3174,0,5,5,https://130.215.26.44/,0,0,0
+1676069128574,9608,index,Non HTTP response code: java.net.SocketException,Non HTTP response message: Socket closed,Thread Group 1-4,text,false,,3174,0,5,5,https://130.215.26.44/,0,0,0
+1676069128604,9578,index,Non HTTP response code: java.net.SocketException,Non HTTP response message: Socket closed,Thread Group 1-5,text,false,,3174,0,5,5,https://130.215.26.44/,0,0,0
+1676069128609,9574,index,Non HTTP response code: java.net.SocketException,Non HTTP response message: Socket closed,Thread Group 1-1,text,false,,3174,0,5,5,https://130.215.26.44/,0,0,0
+1676069128441,9742,index,Non HTTP response code: java.net.SocketException,Non HTTP response message: Socket closed,Thread Group 1-3,text,false,,3174,0,5,5,https://130.215.26.44/,0,0,0
