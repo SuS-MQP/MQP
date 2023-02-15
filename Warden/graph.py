@@ -239,9 +239,10 @@ def graph_CDFs(files:list[str],type:str) -> None:
         elif type == "Server-RAM":
             ax.set_xlabel("RAM Usage (MB)")
         ax.set_ylabel("% of Trials")
-        ax.set_title("Cumulative Distribution Function for " + str(trial) + " Containers")
+        ax.set_title("Cumulative Distribution Function for " + str(trial) + " Containers",verticalalignment='baseline',fontsize=12)
         ax.legend()
-        plt.savefig("CDFs/" + f"{type.replace('-','_')}_"+str(trial) + "_containers.png")
+        plt.grid()
+        plt.savefig("CDFs" + f"{type.replace('-','_')}_"+str(trial) + "_containers.png")
 
                 
 
