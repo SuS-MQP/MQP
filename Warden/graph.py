@@ -1,10 +1,11 @@
-from functools import cache
 import os
 import csv
 import numpy as np
 import matplotlib.pyplot as plt
-#a function to get all PageLoadTimeTe.csv files from Latency/*/*/
-# and put them into a list
+
+
+"""Returns a list of file paths within "Latency" 
+and its subdirectories that contain "PageLoadTime" in their file name."""
 def get_latency_files() -> list[str]:
     files = []
     for root, dirs, filenames in os.walk("Latency"):
@@ -13,6 +14,8 @@ def get_latency_files() -> list[str]:
                 files.append(os.path.join(root, f))
     return files
 
+"""Returns a list of file paths within "Latency" 
+and its subdirectories that contain "Manager_RAW" in their file name"""
 def get_manager_system_usage_files() -> list[str]:
     files = []
     for root, dirs, filenames in os.walk("Latency"):
@@ -21,6 +24,8 @@ def get_manager_system_usage_files() -> list[str]:
                 files.append(os.path.join(root, f))
     return files
 
+"""Returns a list of file paths within "Latency" 
+and its subdirectories that contain "System_RAW" in their file name"""
 def get_server_system_usage_files() -> list[str]:
     files = []
     for root, dirs, filenames in os.walk("Latency"):
@@ -29,7 +34,9 @@ def get_server_system_usage_files() -> list[str]:
                 files.append(os.path.join(root, f))
     return files
 
-#a function that takes in a list and returns a list of boolens indicating if the value is an outlier via the IQR method
+"""Returns a tuple containing a boolean NumPy array that marks the outliers
+ in the input data, as well as the lower and upper bounds of the interquartile 
+ range calculated using the 25th and 75th percentiles of data."""
 def find_outliers(data) -> tuple[np.ndarray[bool], float, float]:
     q1 = np.percentile(data, 25)
     q3 = np.percentile(data, 75)
@@ -38,9 +45,12 @@ def find_outliers(data) -> tuple[np.ndarray[bool], float, float]:
     upper_bound = q3 + (1.5 * iqr)
     return (np.array([True if x < lower_bound or x > upper_bound else False for x in data]), float(lower_bound), float(upper_bound))
 
-
-
-#a function to loop though get_files() in the format of Latency/Type/Size/*.csv and create new csv files in the format of cleaned/Type_Size.csv
+"""
+This function reads latency CSV files, 
+removes outliers from the 'Latency' column, 
+writes cleaned data to new CSV files, 
+and graphs their Cumulative Distribution Functions (CDFs).
+"""
 def clean_latency_files() -> None:
     created_clean_files = []
     for f in get_latency_files():
@@ -107,6 +117,9 @@ def clean_latency_files() -> None:
                                         idleTime,connect])
     graph_CDFs(created_clean_files,"latency")
 
+"""This function takes a scope parameter to either get the manager or server system usage files, 
+cleans them by removing data outside the test build-up and tear-down periods and saves them to new files, 
+and generates cumulative distribution function graphs for CPU and memory usage of the cleaned server files."""
 def clean_system_usage_files(scope:str) -> None:
     created_clean_manager_CPU_files = []
     created_clean_manager_RAM_files = []
@@ -180,7 +193,11 @@ def clean_system_usage_files(scope:str) -> None:
     graph_CDFs(created_clean_server_CPU_files,f"{scope}-CPU")
     graph_CDFs(created_clean_server_RAM_files,f"{scope}-RAM")
     
-#a function to create Cumulative Distribution Functions for each cleaned csv file
+"""
+This function graphs cumulative distribution functions (CDFs) 
+from latency data in csv files for different experiments and 
+container trial sizes, and saves the plots as png files.
+"""
 def graph_CDFs(files:list[str],type:str) -> None:
     if "Manager" in type:
         return
@@ -243,10 +260,6 @@ def graph_CDFs(files:list[str],type:str) -> None:
         ax.legend()
         plt.grid()
         plt.savefig("CDFs/" + f"{type.replace('-','_')}_"+str(trial) + "_containers.png")
-
-                
-
-
 
 if __name__ == '__main__':
     clean_latency_files()
