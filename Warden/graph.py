@@ -249,6 +249,8 @@ def graph_CDFs(files:list[str],type:str) -> None:
                     color = "black"
             ax.plot(x, y, label=experiment, color=color)
         
+
+        #specify the output demiensions
         if type == "latency":
             ax.set_xlabel("Latency (ms)")
         elif type == "Server-CPU":
@@ -259,7 +261,7 @@ def graph_CDFs(files:list[str],type:str) -> None:
         ax.set_title("Cumulative Distribution Function for " + str(trial) + " Containers",verticalalignment='baseline',fontsize=12)
         ax.legend()
         plt.grid()
-        plt.savefig("CDFs/" + f"{type.replace('-','_')}_"+str(trial) + "_containers.png")
+        plt.savefig("CDFs/" + f"{type.replace('-','_')}_"+str(trial) + "_containers.png",dpi=300)
 
 if __name__ == '__main__':
     clean_latency_files()
