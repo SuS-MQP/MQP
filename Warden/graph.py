@@ -5,11 +5,27 @@ import numpy as np
 import matplotlib.pyplot as plt
 #a function to get all PageLoadTimeTe.csv files from Latency/*/*/
 # and put them into a list
-def get_files() -> list[str]:
+def get_latency_files() -> list[str]:
     files = []
     for root, dirs, filenames in os.walk("Latency"):
         for f in filenames:
             if "PageLoadTime" in f:
+                files.append(os.path.join(root, f))
+    return files
+
+def get_manager_system_usage_files() -> list[str]:
+    files = []
+    for root, dirs, filenames in os.walk("Latency"):
+        for f in filenames:
+            if "Manager_RAW" in f:
+                files.append(os.path.join(root, f))
+    return files
+
+def get_server_system_usage_files() -> list[str]:
+    files = []
+    for root, dirs, filenames in os.walk("Latency"):
+        for f in filenames:
+            if "System_RAW" in f:
                 files.append(os.path.join(root, f))
     return files
 
@@ -25,9 +41,9 @@ def find_outliers(data) -> tuple[np.ndarray[bool], float, float]:
 
 
 #a function to loop though get_files() in the format of Latency/Type/Size/*.csv and create new csv files in the format of cleaned/Type_Size.csv
-def clean_files() -> None:
+def clean_latency_files() -> None:
     created_clean_files = []
-    for f in get_files():
+    for f in get_latency_files():
         with open(f, 'r') as csvfile:
             reader = csv.reader(csvfile, delimiter=',')
             #skip the first line
@@ -36,7 +52,7 @@ def clean_files() -> None:
             type = f.split('/')[1]
             size = f.split('/')[2]
             #create a new csv file in the format of cleaned/Type_Size.csv
-            with open('cleaned/' + type + '_' + size + '.csv', 'w+') as newfile:
+            with open('cleaned/' +'latency' +'_'+type + '_' + size + '.csv', 'w+') as newfile:
                 created_clean_files.append(newfile.name)
                 writer = csv.writer(newfile, delimiter=',')
                 writer.writerow(
@@ -89,11 +105,87 @@ def clean_files() -> None:
                                         bytes,sentBytes,grpThreads,
                                         allThreads,url,latency,
                                         idleTime,connect])
-    graph_CDFs(created_clean_files)
+    graph_CDFs(created_clean_files,"latency")
 
+def clean_system_usage_files(scope:str) -> None:
+    created_clean_manager_CPU_files = []
+    created_clean_manager_RAM_files = []
+    created_clean_server_CPU_files = []
+    created_clean_server_RAM_files = []
 
+    files = get_manager_system_usage_files() if scope == "manager" else get_server_system_usage_files()
+    for f in files:
+        with open(f, 'r') as csvfile:
+            reader = csv.reader(csvfile, delimiter=',')
+            #skip the first line
+            next(reader)
+            #get the type and size from the file path
+            type = f.split('/')[1]
+            size = f.split('/')[2]
+            #create a new csv file in the format of cleaned/Type_Size.csv
+            with open('cleaned/' +f'{scope}-CPU' +'_'+type + '_' + size + '.csv', 'w+') as newfile:
+                if scope == "Manager":
+                    created_clean_manager_CPU_files.append(newfile.name)
+                else:
+                    created_clean_server_CPU_files.append(newfile.name)
+                writer = csv.writer(newfile, delimiter=',')
+                # Time,CPU %,Memory (MB)
+                writer.writerow(['Time','CPU %'])
+                #get all the timestamps from the csv file
+                timestamps = [row[0] for row in reader]
+                test_start = float(timestamps[0])
+                test_end = float(timestamps[-1])
+                buildup_done = test_start + 60
+                teardown_begin = test_end - 60
+                #reset the reader to the beginning of the file
+                csvfile.seek(0)
+                #skip the first line
+                next(reader)
+                #loop through the csv file
+                for row in reader:
+                    #get the time and latency from the csv file
+                    time, cpu, memory = row
+                    if float(time) > buildup_done and float(time) < teardown_begin:
+                    #write the time and latency to the new csv file
+                        writer.writerow([time,cpu])
+                #reset the reader to the beginning of the file
+                csvfile.seek(0)
+                #skip the first line
+                next(reader)
+            with open('cleaned/' +f'{scope}-RAM' +'_'+type + '_' + size + '.csv', 'w+') as newfile:
+                if scope == "Manager":
+                    created_clean_manager_RAM_files.append(newfile.name)
+                else:
+                    created_clean_server_RAM_files.append(newfile.name)
+                writer = csv.writer(newfile, delimiter=',')
+                # Time,CPU %,Memory (MB)
+                writer.writerow(['Time','Memory (MB)'])
+                #get all the timestamps from the csv file
+                timestamps = [row[0] for row in reader]
+                test_start = float(timestamps[0])
+                test_end = float(timestamps[-1])
+                buildup_done = test_start + 60
+                teardown_begin = test_end - 60
+                #reset the reader to the beginning of the file
+                csvfile.seek(0)
+                #skip the first line
+                next(reader)
+                #loop through the csv file
+                for row in reader:
+                    #get the time and latency from the csv file
+                    time, cpu, memory = row
+                    if float(time) > buildup_done and float(time) < teardown_begin:
+                    #write the time and latency to the new csv file
+                        writer.writerow([time,memory])
+    graph_CDFs(created_clean_server_CPU_files,f"{scope}-CPU")
+    graph_CDFs(created_clean_server_RAM_files,f"{scope}-RAM")
+    
 #a function to create Cumulative Distribution Functions for each cleaned csv file
-def graph_CDFs(files:list[str]) -> None:
+def graph_CDFs(files:list[str],type:str) -> None:
+    if "Manager" in type:
+        return
+    if "Server" in type:
+        pass
     TRIALS = [1,10,25,50]
     
     for trial in TRIALS:
@@ -104,7 +196,7 @@ def graph_CDFs(files:list[str]) -> None:
         "Vanilla": []
     }
         for f in files:
-            experiment = f.split("_")[0].split("/")[-1]
+            experiment = f.split("_")[1].split("/")[-1] #TODO: change this to work with the new file structure
             size = f.split("_")[-1].split(".csv")[0]
             if size == str(trial):
                 #read in the latency data from the csv file
@@ -112,8 +204,12 @@ def graph_CDFs(files:list[str]) -> None:
                     reader = csv.reader(csvfile, delimiter=',')
                     #skip the first line
                     next(reader)
+                    if type=="latency":
                     #get the latency data from the csv file
-                    experiments[experiment] = [float(row[14]) for row in reader]
+                        experiments[experiment] = [float(row[14]) for row in reader]
+                    else:
+                        experiments[experiment] = [float(row[1]) for row in reader]
+
     
         #plot all the CDFs together
         fig, ax = plt.subplots()
@@ -135,15 +231,23 @@ def graph_CDFs(files:list[str]) -> None:
                 case _:
                     color = "black"
             ax.plot(x, y, label=experiment, color=color)
+        
+        if type == "latency":
+            ax.set_xlabel("Latency (ms)")
+        elif type == "Server-CPU":
+            ax.set_xlabel("CPU Usage (%)")
+        elif type == "Server-RAM":
+            ax.set_xlabel("RAM Usage (MB)")
         ax.set_ylabel("% of Trials")
-        ax.set_xlabel("Latency (ms)")
         ax.set_title("Cumulative Distribution Function for " + str(trial) + " Containers")
         ax.legend()
-        plt.savefig("CDFs/" + str(trial) + "_containers.png")
+        plt.savefig("CDFs/" + f"{type.replace('-','_')}_"+str(trial) + "_containers.png")
 
                 
 
 
 
 if __name__ == '__main__':
-    clean_files()
+    clean_latency_files()
+    clean_system_usage_files("Manager")
+    clean_system_usage_files("Server")
