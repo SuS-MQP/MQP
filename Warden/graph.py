@@ -242,7 +242,7 @@ def graph_CDFs(files:list[str],type:str) -> None:
         ax.set_title("Cumulative Distribution Function for " + str(trial) + " Containers",verticalalignment='baseline',fontsize=12)
         ax.legend()
         plt.grid()
-        plt.savefig("CDFs" + f"{type.replace('-','_')}_"+str(trial) + "_containers.png")
+        plt.savefig("CDFs/" + f"{type.replace('-','_')}_"+str(trial) + "_containers.png")
 
                 
 
