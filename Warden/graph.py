@@ -213,7 +213,7 @@ def graph_CDFs(files:list[str],type:str) -> None:
         "Vanilla": []
     }
         for f in files:
-            experiment = f.split("_")[1].split("/")[-1] #TODO: change this to work with the new file structure
+            experiment = f.split("_")[1].split("/")[-1] 
             size = f.split("_")[-1].split(".csv")[0]
             if size == str(trial):
                 #read in the latency data from the csv file
@@ -239,16 +239,22 @@ def graph_CDFs(files:list[str],type:str) -> None:
             match (experiment):
                 case "BloomAndHash":
                     color = "#2D3B89"
+                    label = "WARDEN"
                 case "Hash":
-                    color = "#72E1D1"
+                    continue
                 case "PHPExt":
                     color = "#8892bf"
+                    label = "PHP Profiling Extension"
                 case "Vanilla":
                     color = "#DE6E4B"
+                    label = "Vanilla"
+                case "Nginx":
+                    color = "#039138"
+                    label = "Nginx"
                 case _:
                     color = "black"
-            ax.plot(x, y, label=experiment, color=color)
-        
+                    label = "Unknown"
+            ax.plot(x, y, label=label, color=color)
 
         #specify the output demiensions
         if type == "latency":
@@ -258,12 +264,17 @@ def graph_CDFs(files:list[str],type:str) -> None:
         elif type == "Server-RAM":
             ax.set_xlabel("RAM Usage (MB)")
         ax.set_ylabel("% of Trials")
-        ax.set_title("Cumulative Distribution Function for " + str(trial) + " Containers",verticalalignment='baseline',fontsize=12)
         ax.legend()
         plt.grid()
+        # plt.show()
+        plt.savefig("CDFs_NO_TITLE/" + f"{type.replace('-','_')}_"+str(trial) + "_containers.png",dpi=300)
+        ax.set_title("Cumulative Distribution Function for " + str(trial) + " Containers",verticalalignment='baseline',fontsize=12)
         plt.savefig("CDFs/" + f"{type.replace('-','_')}_"+str(trial) + "_containers.png",dpi=300)
 
 if __name__ == '__main__':
+    print("Cleaning latency data...")
     clean_latency_files()
+    print("Cleaning Manager usage data...")
     clean_system_usage_files("Manager")
+    print("Cleaning System usage data...")
     clean_system_usage_files("Server")
