@@ -239,7 +239,7 @@ def graph_CDFs(files:list[str],type:str) -> None:
             match (experiment):
                 case "BloomAndHash":
                     color = "#2D3B89"
-                    label = "WARDEN"
+                    label = "Warden"
                 case "Hash":
                     continue
                 case "PHPExt":
