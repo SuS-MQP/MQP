@@ -52,8 +52,7 @@ removes outliers from the 'Latency' column,
 writes cleaned data to new CSV files, 
 and graphs their Cumulative Distribution Functions (CDFs).
 """
-def clean_latency_files() -> list[float]:
-    latency_values_for_summary_stats = []
+def clean_latency_files() -> list[str]:
     created_clean_files = []
     for f in get_latency_files():
         with open(f, 'r') as csvfile:
@@ -111,7 +110,6 @@ def clean_latency_files() -> list[float]:
                     latency, idleTime, connect = row
                     if success == 'true' and (int(time) > buildup_done and int(time) < teardown_begin) and int(latency) < upper_bound and int(latency) > lower_bound:
                     #write the time and latency to the new csv file
-                        latency_values_for_summary_stats.append(int(latency))
                         writer.writerow([time,elapsed,label,
                                         responseCode,responseMessage,threadName,
                                         dataType,success,failureMessage,
@@ -120,20 +118,16 @@ def clean_latency_files() -> list[float]:
                                         idleTime,connect])
                                     
     graph_CDFs(created_clean_files,"latency")
-    return latency_values_for_summary_stats
+    return created_clean_files
 
 """This function takes a scope parameter to either get the manager or server system usage files, 
 cleans them by removing data outside the test build-up and tear-down periods and saves them to new files, 
 and generates cumulative distribution function graphs for CPU and memory usage of the cleaned server files."""
-def clean_system_usage_files(scope:str) -> tuple[list[float], list[float], list[float], list[float]]:
+def clean_system_usage_files(scope:str) -> tuple[list[str], list[str], list[str], list[str]]:
     created_clean_manager_CPU_files = []
     created_clean_manager_RAM_files = []
     created_clean_server_CPU_files = []
     created_clean_server_RAM_files = []
-    manager_CPU_for_summary_stats = []
-    manager_RAM_for_summary_stats = []
-    server_CPU_for_summary_stats = []
-    server_RAM_for_summary_stats = []
 
     files = get_manager_system_usage_files() if scope == "manager" else get_server_system_usage_files()
     for f in files:
@@ -169,12 +163,6 @@ def clean_system_usage_files(scope:str) -> tuple[list[float], list[float], list[
                     time, cpu, memory = row
                     if float(time) > buildup_done and float(time) < teardown_begin:
                     #write the time and latency to the new csv file
-                        if scope == "Manager":
-                            manager_CPU_for_summary_stats.append(float(cpu))
-                            manager_RAM_for_summary_stats.append(float(memory))
-                        else:
-                            server_CPU_for_summary_stats.append(float(cpu))
-                            server_RAM_for_summary_stats.append(float(memory))
                         writer.writerow([time,cpu])
                 #reset the reader to the beginning of the file
                 csvfile.seek(0)
@@ -207,8 +195,15 @@ def clean_system_usage_files(scope:str) -> tuple[list[float], list[float], list[
                         writer.writerow([time,memory])
     graph_CDFs(created_clean_server_CPU_files,f"{scope}-CPU")
     graph_CDFs(created_clean_server_RAM_files,f"{scope}-RAM")
-    return manager_CPU_for_summary_stats, manager_RAM_for_summary_stats, server_CPU_for_summary_stats, server_RAM_for_summary_stats
+    return (created_clean_manager_CPU_files, created_clean_manager_RAM_files, created_clean_server_CPU_files, created_clean_server_RAM_files)
     
+
+def calculate_summary_stats(samples:list[float]) -> tuple[float,float,float]:
+    mean = sum(samples)/len(samples)
+    std = statistics.stdev(samples)
+    median = statistics.median(samples)
+    return mean, std, median
+
 """
 This function graphs cumulative distribution functions (CDFs) 
 from latency data in csv files for different experiments and 
@@ -240,8 +235,14 @@ def graph_CDFs(files:list[str],type:str) -> None:
                     if type=="latency":
                     #get the latency data from the csv file
                         experiments[experiment] = [float(row[14]) for row in reader]
+                        print(f"Latency data summary for {experiment} with {size} containers: {calculate_summary_stats(experiments[experiment])}")
                     else:
                         experiments[experiment] = [float(row[1]) for row in reader]
+                        if type.split("-")[1]=="CPU":
+                            print(f"CPU data summary for {experiment} with {size} containers: {calculate_summary_stats(experiments[experiment])}")
+                        else:
+                            print(f"Memory data summary for {experiment} with {size} containers: {calculate_summary_stats(experiments[experiment])}")
+
 
     
         #plot all the CDFs together
@@ -288,27 +289,16 @@ def graph_CDFs(files:list[str],type:str) -> None:
         plt.savefig("CDFs/" + f"{type.replace('-','_')}_"+str(trial) + "_containers.png",dpi=300)
 
 
-def calculate_summary_stats(samples:list[float]) -> tuple[float,float,float]:
-    mean = sum(samples)/len(samples)
-    std = statistics.stdev(samples)
-    median = statistics.median(samples)
-    return mean, std, median
+
 
 
 if __name__ == '__main__':
     print("Cleaning latency data...")
-    latency_stats = clean_latency_files()
+    latency_files = clean_latency_files()
     print("Cleaning Manager usage data...")
-    manager_CPU, manager_RAM = clean_system_usage_files("Manager")[:2]
+    manager_files = clean_system_usage_files("Manager")
     print("Cleaning System usage data...")
-    system_CPU, system_RAM = clean_system_usage_files("Server")[2:]
+    system_files = clean_system_usage_files("Server")
 
-    manager_CPU_mean, manager_CPU_std, manager_CPU_median = calculate_summary_stats(manager_CPU)
-    manager_RAM_mean, manager_RAM_std, manager_RAM_median = calculate_summary_stats(manager_RAM)
-    system_CPU_mean, system_CPU_std, system_CPU_median = calculate_summary_stats(system_CPU)
-    system_RAM_mean, system_RAM_std, system_RAM_median = calculate_summary_stats(system_RAM)
 
-    print(f"{manager_CPU_mean=:.2f}% {manager_CPU_std=:.2f} {manager_CPU_median=:.2f}%")
-    print(f"{manager_RAM_mean=:.2f}MB {manager_RAM_std=:.2f} {manager_RAM_median=:.2f}MB")
-    print(f"{system_CPU_mean=:.2f}% {system_CPU_std=:.2f} {system_CPU_median=:.2f}%")
-    print(f"{system_RAM_mean=:.2f}MB {system_RAM_std=:.2f} {system_RAM_median=:.2f}MB")
+
