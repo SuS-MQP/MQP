@@ -264,7 +264,7 @@ def graph_CDFs(files:list[str],type:str) -> None:
                     label = "PHP Profiling Extension"
                 case "Vanilla":
                     color = "#DE6E4B"
-                    label = "Vanilla"
+                    label = "Baseline SuS"
                 case "Nginx":
                     color = "#039138"
                     label = "Nginx"
