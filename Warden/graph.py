@@ -19,7 +19,7 @@ def get_latency_files() -> list[str]:
 and its subdirectories that contain "Manager_RAW" in their file name"""
 def get_manager_system_usage_files() -> list[str]:
     files = []
-    for root, dirs, filenames in os.walk("Latency"):
+    for root, dirs, filenames in os.walk("SECOND_REDO"):
         for f in filenames:
             if "Manager_RAW" in f:
                 files.append(os.path.join(root, f))
@@ -29,7 +29,7 @@ def get_manager_system_usage_files() -> list[str]:
 and its subdirectories that contain "System_RAW" in their file name"""
 def get_server_system_usage_files() -> list[str]:
     files = []
-    for root, dirs, filenames in os.walk("Latency"):
+    for root, dirs, filenames in os.walk("SECOND_REDO"):
         for f in filenames:
             if "System_RAW" in f:
                 files.append(os.path.join(root, f))
@@ -280,7 +280,7 @@ def graph_CDFs(files:list[str],type:str) -> None:
             ax.set_xlabel("CPU Usage (%)")
         elif type == "Server-RAM":
             ax.set_xlabel("RAM Usage (MB)")
-        ax.set_ylabel("% of Trials")
+        ax.set_ylabel("Portion of Trials")
         ax.legend()
         plt.grid()
         # plt.show()
@@ -293,8 +293,8 @@ def graph_CDFs(files:list[str],type:str) -> None:
 
 
 if __name__ == '__main__':
-    print("Cleaning latency data...")
-    latency_files = clean_latency_files()
+    # print("Cleaning latency data...")
+    # latency_files = clean_latency_files()
     print("Cleaning Manager usage data...")
     manager_files = clean_system_usage_files("Manager")
     print("Cleaning System usage data...")
