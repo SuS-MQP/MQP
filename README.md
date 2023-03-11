@@ -8,9 +8,11 @@ This is a README file for a Computer Science Major Qualifying Project at Worcest
 
 This directory includes the major files and source code we have developed while engineering <u>Warden: Multi-Layered Control Flow Integrity in Web Applications</u>
 
+Within the `Final Submission` folder, you can find:
 
-Explanation Files:
-* This `README.md`
+* `MQP_SuS_History.pdf` Our final report of the project.
+* `C Term Peer Evals` An administrative peer evaluation for our final term on the project.
+* `WardenSourceCode.zip` A zip file containing the source code of Warden, including the following files.
 
 Source Code Files: 
 * `Makefile` CFI Makefile used for building `warden` with command `make warden` 
